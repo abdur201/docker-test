@@ -8,7 +8,7 @@ on:
 
 env:
 
-  IMAGE_NAME: ghcr.io/abdur201/Docker-Test
+  IMAGE_NAME: ghcr.io/abdur201/docker-test
 
 jobs:
   build-and-push:
