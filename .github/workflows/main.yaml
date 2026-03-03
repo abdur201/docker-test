@@ -1,5 +1,3 @@
-
-
 name: CI - Build and Push Docker Image
 
 on:
@@ -7,8 +5,9 @@ on:
     branches: [ "main" ]
 
 env:
-
   IMAGE_NAME: ghcr.io/abdur201/docker-test
+  
+  AWX_HOST: "172.31.186.158" 
 
 jobs:
   build-and-push:
@@ -38,3 +37,11 @@ jobs:
           push: true
           platforms: linux/amd64, linux/arm64
           tags: ${{ env.IMAGE_NAME }}:latest
+
+     
+      - name: Trigger AWX Job Template
+        run: |
+          curl -f -X POST \
+          -H "Authorization: Bearer ${{ secrets.AWX_TOKEN }}" \
+          -H "Content-Type: application/json" \
+          http://${{ env.AWX_HOST }}:8080/api/v2/job_templates/9/launch/
