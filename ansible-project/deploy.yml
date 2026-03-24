@@ -1,0 +1,53 @@
+---
+- name: Deploy Web App
+  hosts: web-servers
+  become: yes
+
+  tasks:
+
+    - name: Install packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - python3-docker
+        state: present
+        update_cache: yes
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable"
+        state: present
+
+    - name: Install Docker Engine
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+        update_cache: yes
+
+    - name: Pull latest version of Docker image
+      docker_image:
+        name: "ghcr.io/abdur201/docker-test:latest"
+        source: pull
+  
+    - name: Run the web application container
+      docker_container:
+        name: "my_web_app_container_job_{{ tower_job_id | default(10000 | random) }}"
+        image: "ghcr.io/abdur201/docker-test:latest"
+        state: started 
+        pull: always 
+        #recreate: yes
+        #published_ports:
+         # -  "80:80"
+        publish_all_ports: yes
+# Triggering
+
