@@ -1,46 +1,31 @@
----
-- name: Deploy Web App with Unique Ports
+
+
+- name: Deploy Web App with Dynamic Ports
   hosts: web-servers
   become: yes
 
   vars:
-    # 30000 ile 31000 arasında rastgele bir port seçer
     random_port: "{{ 30000 | range(31000) | random }}"
-    # Konteyner ismine zaman damgası ekleyerek benzersiz yapar
     container_name: "docker-test-{{ ansible_date_time.epoch }}"
+    # Docker Hub bilgilerin (Buraya kendi bilgilerini yaz)
+    docker_user: "abdur201"
+    docker_password: "DOCKER_HUB_SIFREN_VEYA_TOKENIN" 
 
   tasks:
-    - name: Ensure Docker and dependencies are installed
-      apt:
-        name:
-          - apt-transport-https
-          - ca-certificates
-          - curl
-          - gnupg
-          - lsb-release
-          - docker.io
-        state: present
-        update_cache: yes
+    - name: Fix Docker Desktop Credential Error
+      shell: "rm -f ~/.docker/config.json /root/.docker/config.json"
+      ignore_errors: yes
 
-    - name: Ensure Docker service is running
-      service:
-        name: docker
-        state: started
-        enabled: yes
+    - name: Log into Docker Hub
+      shell: "echo {{ docker_password }} | docker login --username {{ docker_user }} --password-stdin"
 
-    - name: Pull latest Docker image
+    - name: Pull latest image
       shell: "docker pull abdur201/docker-test:latest"
 
-    - name: Run a new container on a random port
+    - name: Run New Container
       docker_container:
         name: "{{ container_name }}"
         image: abdur201/docker-test:latest
         state: started
-        restart_policy: always
         published_ports:
-          - "{{ random_port }}:80" # İçeride 80'de çalışan uygulamayı dışarıda rastgele porta bağlar
-      register: container_info
-
-    - name: Show Deployment Info
-      debug:
-        msg: "Yeni konteyner açıldı! İsim: {{ container_name }} | Port: {{ random_port }}"
+          - "{{ random_port }}:80"
