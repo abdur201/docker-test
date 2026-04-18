@@ -5,20 +5,16 @@
   gather_facts: yes
 
   tasks:
-    - name: Clean Docker Config (Fix for .exe error)
-      shell: "rm -rf ~/.docker/config.json /root/.docker/config.json"
-      ignore_errors: yes
-
     - name: Login to Docker Hub
-      shell: "echo '{{ my_docker_password }}' | docker login --username abdrak --password-stdin"      # NOT: Yukarıya tırnak içinde Docker Hub şifreni veya Access Token'ını yaz.
+      shell: "echo '{{ my_docker_password }}' | docker login --username abdrak --password-stdin"
 
     - name: Pull Docker image from Hub
       shell: "docker pull abdrak/docker-test:latest"
 
-    - name: Run New Container
+    - name: Run Container
       docker_container:
-        name: "docker-test-{{ ansible_date_time.epoch }}"
-        image: abdur201/docker-test:latest
+        name: "test-{{ ansible_date_time.epoch }}"
+        image: abdrak/docker-test:latest
         state: started
         published_ports:
           - "{{ 30000 | range(31000) | random }}:80"
