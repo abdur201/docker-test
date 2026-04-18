@@ -1,6 +1,6 @@
 ---
 - name: Deploy Docker Web App
-  hosts: web-servers
+  hosts: all
   become: yes
   gather_facts: yes
 
