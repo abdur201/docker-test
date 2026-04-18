@@ -41,7 +41,7 @@ jobs:
      
       - name: Trigger AWX Job Template
         run: |
-          curl -f -X POST \
+          curl -L -X POST \
           -H "Authorization: Bearer ${{ secrets.AWX_TOKEN }}" \
           -H "Content-Type: application/json" \
-          http://${{ env.AWX_HOST }}:8080/api/v2/job_templates/9/launch/
+          "http://${{ env.AWX_HOST }}:8080/api/v2/job_templates/9/launch/"
