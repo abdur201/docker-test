@@ -1,31 +1,24 @@
-
-
-- name: Deploy Web App with Dynamic Ports
+---
+- name: Deploy Docker Web App
   hosts: web-servers
   become: yes
-
-  vars:
-    random_port: "{{ 30000 | range(31000) | random }}"
-    container_name: "docker-test-{{ ansible_date_time.epoch }}"
-    # Docker Hub bilgilerin (Buraya kendi bilgilerini yaz)
-    docker_user: "abdur201"
-    docker_password: "DOCKER_HUB_SIFREN_VEYA_TOKENIN" 
+  gather_facts: yes
 
   tasks:
-    - name: Fix Docker Desktop Credential Error
-      shell: "rm -f ~/.docker/config.json /root/.docker/config.json"
+    - name: Clean Docker Config (Fix for .exe error)
+      shell: "rm -rf ~/.docker/config.json /root/.docker/config.json"
       ignore_errors: yes
 
-    - name: Log into Docker Hub
-      shell: "echo {{ docker_password }} | docker login --username {{ docker_user }} --password-stdin"
+    - name: Login to Docker Hub
+      shell: "echo '{{ my_docker_password }}' | docker login --username abdrak --password-stdin"      # NOT: Yukarıya tırnak içinde Docker Hub şifreni veya Access Token'ını yaz.
 
-    - name: Pull latest image
-      shell: "docker pull abdur201/docker-test:latest"
+    - name: Pull Docker image from Hub
+      shell: "docker pull abdrak/docker-test:latest"
 
     - name: Run New Container
       docker_container:
-        name: "{{ container_name }}"
+        name: "docker-test-{{ ansible_date_time.epoch }}"
         image: abdur201/docker-test:latest
         state: started
         published_ports:
-          - "{{ random_port }}:80"
+          - "{{ 30000 | range(31000) | random }}:80"
