@@ -11,10 +11,10 @@
     - name: Pull Docker image from Hub
       shell: "docker pull abdrak/docker-test:latest"
 
-- name: Run Container
+    - name: Run Container
       docker_container:
         name: "test-{{ ansible_date_time.epoch }}"
         image: abdrak/docker-test:latest
         state: started
         published_ports:
-          - "{{ (30000 | random(31000, start=30000)) }}:80"
+          - "30005:80"
