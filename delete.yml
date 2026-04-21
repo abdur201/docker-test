@@ -1,0 +1,13 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Tüm test projelerini sil (Eğer target_container == 'all' ise)
+      shell: "docker ps -a -q --filter name=test-app- | xargs -r docker rm -f"
+      when: target_container == 'all'
+      ignore_errors: yes
+
+    - name: Belirli bir konteyneri zorla sil (ID ile)
+      shell: "docker rm -f {{ target_container }}"
+      when: target_container != 'all'
+      ignore_errors: yes
