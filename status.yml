@@ -1,8 +1,13 @@
 ---
-- hosts: all
+---
+- name: Get Docker Containers Status
+  hosts: all
   become: yes
   tasks:
-    - name: Konteynerleri Listele
-      shell: "docker ps --format 'table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}' --filter name=test-app-"
+    - name: Tüm test konteynerlerini listele (Çalışan ve Duranlar)
+      shell: "docker ps -a --format 'table {% raw %}{{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}{% endraw %}' --filter name=test-app-"
       register: docker_res
-    - debug: msg="{{ docker_res.stdout_lines }}"
+
+    - name: Sonucu AWX Loglarına Yazdır
+      debug:
+        msg: "{{ docker_res.stdout_lines }}"
