@@ -3,21 +3,57 @@
   hosts: all
   become: yes
   gather_facts: yes
+  vars:
+    # Dışarıdan gelmezse varsayılan değerler
+    islem: "deploy"
+    target_container: "all"
 
   tasks:
+    # --- DEPLOY İŞLEMİ (ORİJİNAL) ---
     - name: Login to Docker Hub
       shell: "echo '{{ my_docker_password }}' | docker login --username abdrak --password-stdin"
+      when: islem == 'deploy' or islem is not defined
 
     - name: Pull Docker image from Hub
       shell: "docker pull abdrak/docker-test:latest"
+      when: islem == 'deploy' or islem is not defined
 
     - name: Run New Container with Random Port
       docker_container:
-        # Her seferinde benzersiz isim (Zaman damgası ile)
         name: "test-app-{{ ansible_date_time.epoch }}"
         image: abdrak/docker-test:latest
         state: started
         restart_policy: always
         published_ports:
-          # 0 yazarsak Docker boş olan rastgele bir portu otomatik atar
           - "0:80"
+      when: islem == 'deploy' or islem is not defined
+
+    # --- STOP İŞLEMİ (SADECE test-app- KONTEYNERLARI) ---
+    - name: Tüm test projelerini durdur (Eğer target == all ise)
+      shell: "docker ps -q --filter name=test-app- | xargs -r docker stop"
+      when: islem == 'stop' and target_container == 'all'
+
+    - name: Belirli bir konteyneri durdur (ID ile)
+      shell: "docker stop {{ target_container }}"
+      when: islem == 'stop' and target_container != 'all'
+
+    # --- DELETE İŞLEMİ (SADECE test-app- KONTEYNERLARI) ---
+    - name: Tüm test projelerini sil (Eğer target == all ise)
+      shell: "docker ps -a -q --filter name=test-app- | xargs -r docker rm -f"
+      when: islem == 'delete' and target_container == 'all'
+
+    - name: Belirli bir konteyneri sil (ID ile)
+      shell: "docker rm -f {{ target_container }}"
+      when: islem == 'delete' and target_container != 'all'
+
+    # --- STATUS / PS İŞLEMİ (CONTAINER ID EKLENDİ) ---
+    - name: Çalışan Konteyner Durumlarını Listele
+      # LLM'in okuyabilmesi için en başa {{.ID}} ekledik!
+      shell: "docker ps --format 'table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}' --filter name=test-app-"
+      register: docker_res
+      when: islem == 'ps' or islem == 'status'
+
+    - name: Durumu Ekrana Yazdır
+      debug:
+        msg: "{{ docker_res.stdout_lines }}"
+      when: islem == 'ps' or islem == 'status'
