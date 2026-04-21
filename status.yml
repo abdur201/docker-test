@@ -1,5 +1,4 @@
 ---
----
 - name: Get Docker Containers Status
   hosts: all
   become: yes
