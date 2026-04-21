@@ -37,13 +37,18 @@ jobs:
       - name: Nginx Config Syntax Test
         run: docker run --rm local-test-image:latest nginx -t
 
-      # 4. TEST: Smoke Test (Canlılık Kontrolü)
-      # İmaj ayağa kalkıyor mu ve HTTP 200 OK yanıtı veriyor mu kontrolü.
+     # 4. TEST: Smoke Test (Canlılık Kontrolü)
       - name: Run Smoke Test
         run: |
-          docker run -d --name smoke-test-container -p 8080:80 local-test-image:latest
+          
+          docker rm -f smoke-test-container || true
+          
+        
+          docker run -d --name smoke-test-container -p 8088:80 local-test-image:latest
           sleep 5
-          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}\n" http://localhost:8080)
+          
+         
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}\n" http://localhost:8088)
           if [ "$HTTP_STATUS" -ne 200 ]; then
             echo "Hata: Site açılmadı! HTTP Kodu: $HTTP_STATUS"
             docker rm -f smoke-test-container
