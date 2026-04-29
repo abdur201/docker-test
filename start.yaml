@@ -1,0 +1,7 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Belirli Konteyneri Başlatır
+      shell: "docker start {{ target_container }}"
+      ignore_errors: yes
